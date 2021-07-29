@@ -73,6 +73,10 @@ class MyFrame(wx.Frame):
         self.installButton = wx.Button(panel, label='Install Module')
         self.installButton.Bind(wx.EVT_BUTTON, self.install_module)
         self.sizer.Add(self.installButton, 0, wx.ALL | wx.CENTER, 5)
+
+        self.upgradeButton = wx.Button(panel, label='Upgrade Pip')
+        self.upgradeButton.Bind(wx.EVT_BUTTON, self.upgrade_pip)
+        self.sizer.Add(self.upgradeButton, 0, wx.ALL | wx.CENTER, 5)
  
         self.backButton = wx.Button(panel, label='BACK')
         self.backButton.Bind(wx.EVT_BUTTON, self.back_function)
@@ -87,6 +91,7 @@ class MyFrame(wx.Frame):
         self.module_name = self.text_entry.GetValue()
         self.text_entry.Show(False)
         self.installButton.Show(False)
+        self.upgradeButton.Show(False)
         self.text.SetLabel("Installing Module...\nPlease Wait")
         self.sizer.Layout()
         time.sleep(0.25)
@@ -96,7 +101,8 @@ class MyFrame(wx.Frame):
             "-m", 
             "pip", 
             "install",
-            self.module_name]
+            self.module_name,
+            "--user"]
  
         check = subprocess.run(args = cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
  
@@ -123,13 +129,52 @@ class MyFrame(wx.Frame):
         self.SetSize(self.original_size)
         self.text.SetLabel("Type name of module to install")
         self.installButton.Show()
+        self.upgradeButton.Show()
         self.text_entry.Show()
         self.text_entry.Clear()
         self.backButton.Show(False)
         self.text2.Show(False)
         self.module_name = ""
         self.result = ""
- 
+
+    def upgrade_pip(self, *args):
+        self.text_entry.Show(False)
+        self.installButton.Show(False)
+        self.upgradeButton.Show(False)
+        self.text.SetLabel("Upgrading Pip...\nPlease Wait")
+        self.sizer.Layout()
+        time.sleep(0.25)
+        wx.Yield()
+
+        cmd = [self.python_program_name,
+            "-m",
+            "pip",
+            "install",
+            "--upgrade",
+            "pip",
+            "--user"]
+
+        check = subprocess.run(args = cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+
+        if(check.returncode == 0):
+            self.text.SetLabel("Pip Upgraded Successful!")
+            self.text2.SetLabel(check.stderr + check.stdout)
+            self.text2.Show()
+            self.backButton.Show()
+            self.text_entry.Show(False)
+            self.installButton.Show(False)
+            self.SetSize(wx.Size(800,250))
+            self.sizer.Layout()
+        else:
+            self.text.SetLabel("Pip Upgrade Failed!")
+            self.text2.SetLabel(check.stderr + check.stdout)
+            self.text2.Show()
+            self.backButton.Show()
+            self.text_entry.Show(False)
+            self.installButton.Show(False)
+            self.SetSize(wx.Size(800,250))
+            self.sizer.Layout()
+
 if __name__ == '__main__':
     app = wx.App()
     frame = MyFrame()
